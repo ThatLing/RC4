@@ -6,9 +6,9 @@ local string_len = string.len
 local bit_bxor = bit.bxor
 local table_concat = table.concat
 
-function RC4.initialize(key)
+local function initialize(key)
 	local S = {}
-	local keylen = string_len(key)
+	local keyLen = string_len(key)
 	
 	for i = 0, 255 do
 		S[i] = i
@@ -16,19 +16,20 @@ function RC4.initialize(key)
 
 	local j = 0
 	for i = 0, 255 do
-		j = (j + S[i] + string_byte(key, i % keylen + 1)) % 256
+		j = (j + S[i] + string_byte(key, i % keyLen + 1)) % 256
 		S[i], S[j] = S[j], S[i]
 	end
 	
 	return S
 end
+RC4.initialize = initialize
 
-function RC4.generatestream(S, len)
+local function generatestream(S, len)
 	local i, j = 0, 0
 	local keystream = {}
 	
 	for k = 1, len do
-		i = (i + 1)		% 256
+		i = (i + 1)	% 256
 		j = (j + S[i])	% 256
 		
 		S[i], S[j] = S[j], S[i]
@@ -37,12 +38,13 @@ function RC4.generatestream(S, len)
 	
 	return keystream
 end
+RC4.generatestream = generatestream
 
-function RC4.crypt(key, msg)
+local function crypt(key, msg)
 	local ciphertext = {}
 	local msgLen = string_len(msg)
 	
-	local keystream = RC4.generatestream(RC4.initialize(key), msgLen)
+	local keystream = generatestream(initialize(key), msgLen)
 	
 	for i = 1, msgLen do
 		ciphertext[i] = string_char(bit_bxor(string_byte(msg, i), keystream[i]))
@@ -50,3 +52,4 @@ function RC4.crypt(key, msg)
 	
 	return table_concat(ciphertext)
 end
+RC4.crypt = crypt
